@@ -9,7 +9,23 @@ import 'element-ui/lib/theme-chalk/index.css'; // 默认主题
 import './assets/css/icon.css';
 import './components/common/directives';
 import 'babel-polyfill';
+import VeLine from 'v-charts/lib/line.common';
+import VeMap from 'v-charts/lib/map.common';
+// 下面的依赖可以按照需求选择性加载
+// The following dependencies can be selectively loaded on demand
+import 'echarts/lib/component/markLine';
+import 'echarts/lib/component/markPoint';
+import 'echarts/lib/component/markArea';
+import 'echarts/lib/component/visualMap';
+import 'echarts/lib/component/dataZoom';
+import 'echarts/lib/component/toolbox';
+import 'echarts/lib/component/title';
+import 'zrender/lib/svg/svg';
+import 'v-charts/lib/style.css';
 
+[VeLine, VeMap].forEach(comp => {
+    Vue.component(comp.name, comp);
+});
 Vue.config.productionTip = false;
 Vue.use(VueI18n);
 Vue.use(ElementUI, {
@@ -40,6 +56,7 @@ router.beforeEach((to, from, next) => {
         }
     }
 });
+Vue._watchers = Vue.prototype._watchers = []
 
 new Vue({
     router,

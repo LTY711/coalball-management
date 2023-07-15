@@ -5,15 +5,34 @@ Vue.use(Router);
 
 export default new Router({
     routes: [
+        // {
+        //     path: '/dashboard',
+        //     redirect: '/dashboard'
+        // },
         {
             path: '/',
-            redirect: '/dashboard'
+            redirect: '/businessHome'
         },
         {
             path: '/',
             component: () => import(/* webpackChunkName: "home" */ '../components/common/Home.vue'),
             meta: { title: '自述文件' },
             children: [
+                {
+                    path: '/businessHome',
+                    component: () => import(/* webpackChunkName: "dashboard" */ '../components/page/BusinessHome.vue'),
+                    meta: { title: '商家首页' }
+                },
+                {
+                    path: '/oderHandle',
+                    component: () => import(/* webpackChunkName: "dashboard" */ '../components/page/OderHandle.vue'),
+                    meta: { title: '订单处理' }
+                },
+                {
+                    path: '/orderSee',
+                    component: () => import(/* webpackChunkName: "dashboard" */ '../components/page/OrderSee.vue'),
+                    meta: { title: '订单查询' }
+                },
                 {
                     path: '/dashboard',
                     component: () => import(/* webpackChunkName: "dashboard" */ '../components/page/Dashboard.vue'),
