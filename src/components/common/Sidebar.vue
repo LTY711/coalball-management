@@ -69,7 +69,7 @@ export default {
           title: "商家首页",
         },
         {
-          icon: "el-icon-rank",
+          icon: "el-icon-s-order",
           index: "6",
           title: "订单管理",
           subs: [

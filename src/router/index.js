@@ -24,8 +24,8 @@ export default new Router({
                     meta: { title: '商家首页' }
                 },
                 {
-                    path: '/oderHandle',
-                    component: () => import(/* webpackChunkName: "dashboard" */ '../components/page/OderHandle.vue'),
+                    path: '/orderHandle',
+                    component: () => import(/* webpackChunkName: "dashboard" */ '../components/page/OrderHandle.vue'),
                     meta: { title: '订单处理' }
                 },
                 {

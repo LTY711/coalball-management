@@ -1,418 +1,261 @@
 <template>
   <div>
-    <el-row>
-      <div class="nav-title">
-        <div class="line-icon"></div>
-        <div>订单数据</div>
-      </div>
-    </el-row>
-    <el-row :gutter="20">
-      <div class="tabItems">
-        <div class="tabItem1">
-          <div class="tag-detail">
-            <div>订单总数</div>
-            <div>{{ orderCount }}</div>
-            <div class="tag-bottom">
-              <div class="tag-detail-view" v-if="compareOder > 0">
-                <div class="tag-detail-add-icon"></div>
-                <div class="tag-detail-add">
-                  {{ compareOder.toFixed(4) * 100 + "%" }}
-                </div>
-              </div>
-              <div class="tag-detail-view" v-else>
-                <div class="tag-detail-down-icon"></div>
-                <div class="tag-detail-down">
-                  {{ compareOder.toFixed(4) * 100 + "%" }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="tabItem2">
-          <div class="tag-detail">
-            <div>待处理</div>
-            <div>{{ willProcessedCount }}</div>
-          </div>
-        </div>
-        <div class="tabItem3">
-          <div class="tag-detail">
-            <div>已完成</div>
-            <div>{{ processedCount }}</div>
-          </div>
-        </div>
-        <div class="tabItem4">
-          <div class="tag-detail">
-            <div>无效订单</div>
-            <div>{{ noUseCount }}</div>
-          </div>
-        </div>
-      </div>
-    </el-row>
-    <el-row>
-      <div class="nav-title">
-        <div class="line-icon"></div>
-        <div>核验订单</div>
-      </div>
-    </el-row>
-    <el-row>
-      <div class="hx-oder">
-        <div class="hx-oder-view">
-          <span class="hx-oder-view-title">核销码：</span>
+    <div class="crumbs"></div>
+    <div class="container">
+      <div class="handle-box">
+        <div class="input-suffix">
+          订单号：
           <el-input
-            v-model="hxOrderInputText"
-            class="hxOrderInput"
-            placeholder="请输入内容"
+            v-model="query.number"
+            placeholder="请输入"
+            class="handle-input mr10"
           ></el-input>
         </div>
-        <el-button type="primary" @click="hxOrder()">核验</el-button>
-        <el-button @click="czOrderInput()">重置</el-button>
+        <div class="input-suffix">
+          订单时间：
+          <el-date-picker
+            type="date"
+            class="handle-input"
+            placeholder="选择日期"
+            v-model="query.time"
+            value-format="yyyy-MM-dd"
+          ></el-date-picker>
+        </div>
+        <div class="input-suffix">
+          订单状态：
+          <el-select
+            v-model="query.state"
+            placeholder="请选择"
+            class="handle-select mr10"
+          >
+            <el-option key="1" label="已完成" value="done"></el-option>
+            <el-option key="2" label="已取消" value="cance"></el-option>
+          </el-select>
+        </div>
+        <el-button type="primary" icon="el-icon-search" @click="handleSearch"
+          >搜索</el-button
+        >
+        <el-button icon="el-icon-search" @click="handleSearchCancel"
+          >重置</el-button
+        >
       </div>
-    </el-row>
-    <el-row>
-      <div class="nav-title">
-        <div class="line-icon"></div>
-        <div>GMV月度趋势</div>
+      <el-table
+        :data="tableData"
+        border
+        class="table"
+        ref="multipleTable"
+        header-cell-class-name="table-header"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column
+          type="selection"
+          width="55"
+          align="center"
+        ></el-table-column>
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="55"
+          align="center"
+        ></el-table-column>
+        <el-table-column prop="name" label="用户名"></el-table-column>
+        <el-table-column label="账户余额">
+          <template slot-scope="scope">￥{{ scope.row.money }}</template>
+        </el-table-column>
+        <el-table-column label="头像(查看大图)" align="center">
+          <template slot-scope="scope">
+            <el-image
+              class="table-td-thumb"
+              :src="scope.row.thumb"
+              :preview-src-list="[scope.row.thumb]"
+            ></el-image>
+          </template>
+        </el-table-column>
+        <el-table-column prop="address" label="地址"></el-table-column>
+        <el-table-column label="状态" align="center">
+          <template slot-scope="scope">
+            <el-tag
+              :type="
+                scope.row.state === '成功'
+                  ? 'success'
+                  : scope.row.state === '失败'
+                  ? 'danger'
+                  : ''
+              "
+              >{{ scope.row.state }}</el-tag
+            >
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="date" label="注册时间"></el-table-column>
+        <el-table-column label="操作" width="180" align="center">
+          <template slot-scope="scope">
+            <el-button type="text" @click="handleLook(scope.$index, scope.row)"
+              >查看</el-button
+            >
+            <!-- <el-button
+              type="text"
+              icon="el-icon-edit"
+              @click="handleEdit(scope.$index, scope.row)"
+              >编辑</el-button
+            >
+            <el-button
+              type="text"
+              icon="el-icon-delete"
+              class="red"
+              @click="handleDelete(scope.$index, scope.row)"
+              >删除</el-button
+            > -->
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="pagination">
+        <el-pagination
+          background
+          layout="total, prev, pager, next"
+          :current-page="query.pageIndex"
+          :page-size="query.pageSize"
+          :total="pageTotal"
+          @current-change="handlePageChange"
+        ></el-pagination>
       </div>
-    </el-row>
+    </div>
+
+    <!-- 编辑弹出框 -->
+    <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
+      <el-form ref="form" :model="form" label-width="70px">
+        <el-form-item label="用户名">
+          <el-input v-model="form.name"></el-input>
+        </el-form-item>
+        <el-form-item label="地址">
+          <el-input v-model="form.address"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="editVisible = false">取 消</el-button>
+        <el-button type="primary" @click="saveEdit">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import Schart from "vue-schart";
-import bus from "../common/bus";
+import { fetchData } from "../../api/index";
 export default {
-  name: "oderSee",
+  name: "orderSee",
   data() {
     return {
-      name: localStorage.getItem("ms_username"),
-      orderCount: 199,
-      compareOder: 0.12,
-      willProcessedCount: 22,
-      processedCount: 170,
-      noUseCount: 20,
-      hxOrderInputText: "",
-      userColor: ["#3D62D9"],
+      query: {},
+      tableData: [],
+      multipleSelection: [],
+      delList: [],
+      editVisible: false,
+      pageTotal: 0,
+      form: {},
+      idx: -1,
+      id: -1,
     };
   },
-  components: {
-    Schart,
+  created() {
+    this.getData();
   },
-  computed: {
-    role() {
-      return this.name === "admin" ? "超级管理员" : "普通用户";
-    },
-  },
-  // created() {
-  //     this.handleListener();
-  //     this.changeDate();
-  // },
-  // activated() {
-  //     this.handleListener();
-  // },
-  // deactivated() {
-  //     window.removeEventListener('resize', this.renderChart);
-  //     bus.$off('collapse', this.handleBus);
-  // },
   methods: {
-    changeDate() {
-      const now = new Date().getTime();
-      this.data.forEach((item, index) => {
-        const date = new Date(now - (6 - index) * 86400000);
-        item.name = `${date.getFullYear()}/${
-          date.getMonth() + 1
-        }/${date.getDate()}`;
+    // 获取 easy-mock 的模拟数据
+    getData() {
+      fetchData(this.query).then((res) => {
+        console.log(res);
+        this.tableData = res.list;
+        this.pageTotal = res.pageTotal || 50;
       });
     },
-    goCreate() {
-      console.log("goCreate");
+    // 触发搜索按钮
+    handleSearch() {
+      this.$set(this.query, "pageIndex", 1);
+      console.log("query", this.query);
+      this.getData();
     },
-    hxOrder() {
-      console.log("hxOrder", this.hxOrderInputText);
+    handleSearchCancel() {
+      this.query = {};
+      // this.$set(this.query, "pageIndex", val);
     },
-    czOrderInput() {
-      this.hxOrderInputText = "";
-      console.log("czOrderInput");
+    handleLook(index, row) {},
+    // 删除操作
+    handleDelete(index, row) {
+      // 二次确认删除
+      this.$confirm("确定要删除吗？", "提示", {
+        type: "warning",
+      })
+        .then(() => {
+          this.$message.success("删除成功");
+          this.tableData.splice(index, 1);
+        })
+        .catch(() => {});
     },
-    // handleListener() {
-    //     bus.$on('collapse', this.handleBus);
-    //     // 调用renderChart方法对图表进行重新渲染
-    //     window.addEventListener('resize', this.renderChart);
-    // },
-    // handleBus(msg) {
-    //     setTimeout(() => {
-    //         this.renderChart();
-    //     }, 200);
-    // },
-    // renderChart() {
-    //     this.$refs.bar.renderChart();
-    //     this.$refs.line.renderChart();
-    // }
+    // 多选操作
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
+    },
+    delAllSelection() {
+      const length = this.multipleSelection.length;
+      let str = "";
+      this.delList = this.delList.concat(this.multipleSelection);
+      for (let i = 0; i < length; i++) {
+        str += this.multipleSelection[i].name + " ";
+      }
+      this.$message.error(`删除了${str}`);
+      this.multipleSelection = [];
+    },
+    // 编辑操作
+    handleEdit(index, row) {
+      this.idx = index;
+      this.form = row;
+      this.editVisible = true;
+    },
+    // 保存编辑
+    saveEdit() {
+      this.editVisible = false;
+      this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+      this.$set(this.tableData, this.idx, this.form);
+    },
+    // 分页导航
+    handlePageChange(val) {
+      this.$set(this.query, "pageIndex", val);
+      this.getData();
+    },
   },
 };
 </script>
 
-
 <style scoped>
-.el-row {
+.handle-box {
   margin-bottom: 20px;
+  display: flex;
 }
 
-.grid-content {
-  display: flex;
-  align-items: center;
-  height: 100px;
+.handle-select {
+  width: 120px;
 }
-.tabItems {
-  display: flex;
-  margin-left: 10px;
-  justify-content: space-between;
+.input-suffix {
+  width: 350px;
 }
-.tabItem1 {
+.handle-input {
   width: 200px;
-  height: 150px;
-  border-radius: 8px;
-  margin-right: 20px;
-  flex-shrink: 0;
-  background-color: #7f5cf2;
+  display: inline-block;
 }
-.tabItem2 {
-  width: 200px;
-  height: 150px;
-  border-radius: 8px;
-  margin-right: 20px;
-  background-color: #674eff;
-}
-.tabItem3 {
-  width: 200px;
-  height: 150px;
-  border-radius: 8px;
-  margin-right: 20px;
-  background-color: #0b93fe;
-}
-.tabItem3 {
-  width: 200px;
-  height: 150px;
-  border-radius: 8px;
-  margin-right: 20px;
-  background-color: #5a83eb;
-}
-.tag-detail {
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-  justify-content: space-between;
-}
-.tag-detail-top {
+.table {
+  width: 100%;
   font-size: 14px;
-  color: white;
-  margin-left: 20px;
 }
-.tag-detail-bottom {
-  margin-left: 20px;
-  font-size: 24px;
-  color: white;
+.red {
+  color: #ff0000;
 }
-.tag-view {
-  margin-top: 10px;
+.mr10 {
+  margin-right: 10px;
+}
+.table-td-thumb {
+  display: block;
+  margin: auto;
   width: 40px;
   height: 40px;
-  font-size: 30px;
-  margin-left: 20px;
-  color: #fff;
-  margin-bottom: 20px;
-}
-.tag-right {
-  margin-left: 10px;
-  padding-top: 25px;
-}
-.tag-detail-view {
-  display: flex;
-}
-.tag-detail-add {
-  margin-left: 5px;
-  color: #1afa29;
-}
-.tag-detail-down {
-  margin-left: 5px;
-  color: red;
-}
-.tag-detail-add-icon {
-  width: 20px;
-  height: 20px;
-  background-size: 100% 100%;
-  background-image: url(../../assets/img/tag-detail-add.png);
-}
-.tag-detail-down-icon {
-  width: 20px;
-  height: 20px;
-  background-size: 100% 100%;
-  background-image: url(../../assets/img/tag-detail-down.png);
-}
-.hx-oder {
-  width: auto;
-  height: 150px;
-  border-radius: 8px;
-  margin-right: 20px;
-  background-color: #fff;
-}
-.hx-oder-view {
-  display: flex;
-  font-size: 12px;
-  margin-right: 10px;
-  margin-left: 10px;
-}
-.hx-oder-view-title {
-  flex-shrink: 0;
-  line-height: 36px;
-}
-.line-icon {
-  width: 10px;
-  height: 25px;
-  background-size: 100% 100%;
-  margin-right: 5px;
-  background-image: url(../../assets/img/line.png);
-}
-.money-icon-view {
-  display: flex;
-  background-color: #f5f7fd;
-  width: auto;
-  height: 64px;
-  border-radius: 5px;
-  padding-left: 10px;
-  padding-right: 10px;
-  justify-content: space-between;
-}
-.money-icon {
-  width: 400px;
-  height: 64px;
-  background-size: 100% 100%;
-  background-image: url(../../assets/img/money-img.png);
-}
-.money-icon-right {
-  width: 80px;
-  height: 64px;
-  background-size: 100% 100%;
-  background-image: url(../../assets/img/money-img-right.png);
-}
-
-.hx-oder-title {
-  margin-top: 5px;
-  margin-left: 20px;
-  margin-bottom: 50px;
-  display: flex;
-}
-.hxOrderInput {
-  margin-right: 5px;
-}
-.look-more {
-  font-size: 12px;
-  color: #999;
-}
-.nav-view {
-  display: flex;
-  justify-content: space-between;
-  padding-left: 20px;
-  padding-right: 20px;
-}
-.nav-title {
-  display: flex;
-}
-.grid-cont-right {
-  flex: 1;
-  text-align: center;
-  font-size: 14px;
-  color: #999;
-}
-
-.grid-num {
-  font-size: 30px;
-  font-weight: bold;
-}
-
-.grid-con-icon {
-  font-size: 50px;
-  width: 100px;
-  height: 100px;
-  text-align: center;
-  line-height: 100px;
-  color: #fff;
-}
-
-.grid-con-1 .grid-con-icon {
-  background: rgb(45, 140, 240);
-}
-
-.grid-con-1 .grid-num {
-  color: rgb(45, 140, 240);
-}
-
-.grid-con-2 .grid-con-icon {
-  background: rgb(100, 213, 114);
-}
-
-.grid-con-2 .grid-num {
-  color: rgb(45, 140, 240);
-}
-
-.grid-con-3 .grid-con-icon {
-  background: rgb(242, 94, 67);
-}
-
-.grid-con-3 .grid-num {
-  color: rgb(242, 94, 67);
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #ccc;
-  margin-bottom: 20px;
-}
-
-.user-avator {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-}
-
-.user-info-cont {
-  padding-left: 50px;
-  flex: 1;
-  font-size: 14px;
-  color: #999;
-}
-
-.user-info-cont div:first-child {
-  font-size: 30px;
-  color: #222;
-}
-
-.user-info-list {
-  font-size: 14px;
-  color: #999;
-  line-height: 25px;
-}
-
-.user-info-list span {
-  margin-left: 70px;
-}
-
-.mgb20 {
-  margin-bottom: 20px;
-}
-
-.todo-item {
-  font-size: 14px;
-}
-
-.todo-item-del {
-  text-decoration: line-through;
-  color: #999;
-}
-
-.schart {
-  width: 100%;
-  height: 300px;
 }
 </style>
